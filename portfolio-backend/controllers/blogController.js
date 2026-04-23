@@ -1,82 +1,52 @@
-const BlogModel = require('../models/BlogModel');
+const Blog = require('../models/Blog');
 
-exports.createBlog = async (req, res) => {
+const getAllBlogs = async (req, res) => {
     try {
-        const { title, content, tags } = req.body;
-        const blogId = await BlogModel.create({
-            user_id: req.userId,
-            title,
-            content,
-            tags
+        const blogs = await Blog.findAll({ order: [['created_at', 'DESC']] });
+        res.json(blogs);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const createBlog = async (req, res) => {
+    try {
+        let tags = req.body.tags;
+        if (typeof tags === 'string') {
+            try { tags = JSON.parse(tags); } catch { tags = tags.split(',').map(t => t.trim()); }
+        }
+        const blog = await Blog.create({
+            user_id: req.user.id,
+            title: req.body.title,
+            content: req.body.content,
+            tags: JSON.stringify(tags)
         });
-        res.status(201).json({ message: 'Blog created successfully', id: blogId });
+        res.status(201).json(blog);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message });
     }
 };
 
-exports.getMyBlogs = async (req, res) => {
+const updateBlog = async (req, res) => {
     try {
-        const blogs = await BlogModel.findByUserId(req.userId);
-        res.json(blogs);
+        const blog = await Blog.findByPk(req.params.id);
+        if (!blog) return res.status(404).json({ message: 'Blog not found' });
+        await blog.update(req.body);
+        res.json(blog);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message });
     }
 };
 
-exports.getAllBlogs = async (req, res) => {
+const deleteBlog = async (req, res) => {
     try {
-        const blogs = await BlogModel.findAll();
-        res.json(blogs);
+        const blog = await Blog.findByPk(req.params.id);
+        if (!blog) return res.status(404).json({ message: 'Blog not found' });
+        await blog.destroy();
+        res.json({ message: 'Blog deleted' });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message });
     }
 };
 
-exports.getBlogById = async (req, res) => {
-    try {
-        const blog = await BlogModel.findById(req.params.id);
-        if (blog) {
-            res.json(blog);
-        } else {
-            res.status(404).json({ message: 'Blog not found' });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
-
-exports.updateBlog = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { title, content, tags } = req.body;
-        const updated = await BlogModel.update(id, req.userId, { title, content, tags });
-        if (updated) {
-            res.json({ message: 'Blog updated successfully' });
-        } else {
-            res.status(404).json({ message: 'Blog not found' });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
-
-exports.deleteBlog = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const deleted = await BlogModel.delete(id, req.userId);
-        if (deleted) {
-            res.json({ message: 'Blog deleted successfully' });
-        } else {
-            res.status(404).json({ message: 'Blog not found' });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
+module.exports = { getAllBlogs, createBlog, updateBlog, deleteBlog };

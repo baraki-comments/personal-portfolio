@@ -4,7 +4,7 @@ const skillController = require('../controllers/skillController');
 const authMiddleware = require('../middleware/auth');
 
 router.post('/', authMiddleware, skillController.createSkill);
-router.get('/', authMiddleware, skillController.getSkills);
+router.get('/', skillController.getSkills); // public
 router.put('/:id', authMiddleware, skillController.updateSkill);
 router.delete('/:id', authMiddleware, skillController.deleteSkill);
 

@@ -4,15 +4,11 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
-const myCustomLightTheme = {
+const theme = {
   dark: false,
   colors: {
-    background: '#FFFFFF',
-    surface: '#FFFFFF',
     primary: '#6200EE',
-    'primary-darken-1': '#3700B3',
     secondary: '#03DAC6',
-    'secondary-darken-1': '#018786',
     error: '#B00020',
     info: '#2194F3',
     success: '#4CAF50',
@@ -24,9 +20,7 @@ export default createVuetify({
   components,
   directives,
   theme: {
-    defaultTheme: 'myCustomLightTheme',
-    themes: {
-      myCustomLightTheme,
-    },
-  },
+    defaultTheme: 'light',
+    themes: { light: theme }
+  }
 })

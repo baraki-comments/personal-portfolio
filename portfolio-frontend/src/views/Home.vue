@@ -1,77 +1,94 @@
 <template>
-  <v-container>
-    <!-- Hero Section -->
-    <v-row class="text-center py-12">
-      <v-col cols="12">
-        <v-avatar size="150" class="mb-4">
-          <v-img :src="user?.profile_photo || 'https://via.placeholder.com/150'" />
-        </v-avatar>
-        <h1 class="text-h2 font-weight-bold mb-2">{{ user?.name || 'Welcome' }}</h1>
-        <p class="text-h6 text-grey-darken-1">Full Stack Developer</p>
-      </v-col>
-    </v-row>
-    
-    <!-- Bio Section -->
-    <v-row class="mb-12">
-      <v-col cols="12" md-8 offset-md-2>
-        <v-card>
-          <v-card-title class="text-h5">About Me</v-card-title>
-          <v-card-text>
-            <p class="text-body-1">{{ user?.bio || 'Add your bio in the dashboard' }}</p>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-    
-    <!-- Education Section -->
-    <v-row class="mb-12">
-      <v-col cols="12" md-8 offset-md-2>
-        <v-card>
-          <v-card-title class="text-h5">Education</v-card-title>
-          <v-card-text>
-            <div v-html="user?.education || '<p>Add your education in the dashboard</p>'"></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-    
-    <!-- Skills Section -->
-    <v-row>
-      <v-col cols="12" md-8 offset-md-2>
-        <v-card>
-          <v-card-title class="text-h5">Skills</v-card-title>
-          <v-card-text>
-            <v-list>
-              <v-list-item v-for="skill in skills" :key="skill.id">
-                <v-list-item-title>{{ skill.skill_name }}</v-list-item-title>
-                <v-progress-linear :model-value="skill.level" height="10" class="mt-2"></v-progress-linear>
-                <span class="text-caption">{{ skill.level }}%</span>
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+  <div class="home-container">
+    <div style="max-width: 900px; margin: 0 auto; padding: 40px 20px;">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <img 
+          :src="profilePhotoUrl" 
+          @error="handleImageError"
+          class="profile-image"
+        >
+        <h1 class="profile-name">{{ profile.name || 'Your Name' }}</h1>
+        <p class="profile-bio">{{ profile.bio || 'Add your bio in the dashboard' }}</p>
+      </div>
+
+      <div class="education-card">
+        <h2>Education</h2>
+        <p>{{ profile.education || 'Add your education in the dashboard' }}</p>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { skillsAPI } from '@/services/api'
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
 
-const authStore = useAuthStore()
-const user = ref(authStore.user)
-const skills = ref([])
+const api = axios.create({ baseURL: 'http://localhost:5004/api' })
+const profile = ref({ name: '', bio: '', education: '', profile_photo: '' })
 
-onMounted(async () => {
-  if (authStore.isAuthenticated) {
-    try {
-      const response = await skillsAPI.getAll()
-      skills.value = response.data
-    } catch (error) {
-      console.error('Failed to load skills:', error)
-    }
+const profilePhotoUrl = computed(() => {
+  if (profile.value.profile_photo) {
+    return `http://localhost:5004${profile.value.profile_photo}`
   }
+  return 'https://via.placeholder.com/150'
+})
+
+const handleImageError = (e) => {
+  e.target.src = 'https://via.placeholder.com/150'
+}
+
+const loadProfile = async () => {
+  try {
+    const res = await api.get('/profile')
+    profile.value = res.data
+  } catch (err) {
+    console.error('Failed to load profile:', err)
+  }
+}
+
+onMounted(() => {
+  loadProfile()
 })
 </script>
+
+<style scoped>
+.home-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+.profile-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid white;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+.profile-name {
+  color: white;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+.profile-bio {
+  color: rgba(255,255,255,0.9);
+  font-size: 1.1rem;
+}
+.education-card {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+.education-card h2 {
+  color: #0f172a;
+  border-left: 4px solid #0f172a;
+  padding-left: 15px;
+  margin-bottom: 15px;
+}
+.education-card p {
+  color: #334155;
+  line-height: 1.6;
+}
+</style>

@@ -1,58 +1,37 @@
 <template>
   <v-app-bar color="primary" dark prominent>
     <v-app-bar-nav-icon @click="drawer = !drawer" class="d-md-none"></v-app-bar-nav-icon>
-    
     <v-toolbar-title>My Portfolio</v-toolbar-title>
-    
     <v-spacer></v-spacer>
-    
-    <v-btn text to="/" class="d-none d-md-flex">Home</v-btn>
-    <v-btn text to="/projects" class="d-none d-md-flex">Projects</v-btn>
-    <v-btn text to="/blogs" class="d-none d-md-flex">Blog</v-btn>
-    <v-btn text to="/contact" class="d-none d-md-flex">Contact</v-btn>
-    
-    <v-btn v-if="!isAuthenticated" text to="/login" class="ml-2">Login</v-btn>
-    <v-btn v-if="!isAuthenticated" text to="/register" class="ml-2">Register</v-btn>
-    
-    <v-menu v-if="isAuthenticated">
-      <template v-slot:activator="{ props }">
-        <v-btn icon v-bind="props">
-          <v-avatar size="32">
-            <v-icon>mdi-account-circle</v-icon>
-          </v-avatar>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item to="/dashboard">
-          <v-list-item-title>Dashboard</v-list-item-title>
-        </v-list-item>
-        <v-list-item @click="handleLogout">
-          <v-list-item-title>Logout</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+    <div class="d-none d-md-flex align-center">
+      <v-btn text to="/">Home</v-btn>
+      <v-btn text to="/projects">Projects</v-btn>
+      <v-btn text to="/blogs">Blog</v-btn>
+      <v-btn text @click="scrollToSkills">Skills</v-btn>
+      <v-btn text to="/contact">Contact</v-btn>
+      <v-btn v-if="!isAuthenticated" text to="/login">Login</v-btn>
+      <v-btn v-if="!isAuthenticated" text to="/register">Register</v-btn>
+      <v-btn v-if="isAuthenticated" text to="/dashboard">Dashboard</v-btn>
+      <v-btn v-if="isAuthenticated" text @click="handleLogout">Logout</v-btn>
+    </div>
   </v-app-bar>
-  
   <v-navigation-drawer v-model="drawer" temporary>
     <v-list>
-      <v-list-item to="/">
-        <v-list-item-title>Home</v-list-item-title>
-      </v-list-item>
-      <v-list-item to="/projects">
-        <v-list-item-title>Projects</v-list-item-title>
-      </v-list-item>
-      <v-list-item to="/blogs">
-        <v-list-item-title>Blog</v-list-item-title>
-      </v-list-item>
-      <v-list-item to="/contact">
-        <v-list-item-title>Contact</v-list-item-title>
-      </v-list-item>
+      <v-list-item to="/">Home</v-list-item>
+      <v-list-item to="/projects">Projects</v-list-item>
+      <v-list-item to="/blogs">Blog</v-list-item>
+      <v-list-item @click="scrollToSkills">Skills</v-list-item>
+      <v-list-item to="/contact">Contact</v-list-item>
+      <v-list-item v-if="!isAuthenticated" to="/login">Login</v-list-item>
+      <v-list-item v-if="!isAuthenticated" to="/register">Register</v-list-item>
+      <v-list-item v-if="isAuthenticated" to="/dashboard">Dashboard</v-list-item>
+      <v-list-item v-if="isAuthenticated" @click="handleLogout">Logout</v-list-item>
     </v-list>
   </v-navigation-drawer>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
@@ -64,5 +43,19 @@ const isAuthenticated = authStore.isAuthenticated
 const handleLogout = () => {
   authStore.logout()
   router.push('/login')
+}
+
+const scrollToSkills = () => {
+  if (router.currentRoute.value.path !== '/') {
+    router.push('/').then(() => {
+      setTimeout(() => {
+        const el = document.getElementById('skills-section')
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    })
+  } else {
+    const el = document.getElementById('skills-section')
+    if (el) el.scrollIntoView({ behavior: 'smooth' })
+  }
 }
 </script>
